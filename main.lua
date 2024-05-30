@@ -168,7 +168,7 @@ function createEnemies(dt)
         dx=x_girl-x_enemy
         dy=y_girl-y_enemy
         
-        if math.sqrt(dx * dx + dy * dy)<100 then
+        if math.sqrt(dx * dx + dy * dy)<200 then
             return
         end
 
