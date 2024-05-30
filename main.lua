@@ -165,6 +165,13 @@ function createEnemies(dt)
         local x_enemy = math.random(0, love.graphics.getWidth())
         local y_enemy = math.random(0, love.graphics.getHeight())
         x_girl,y_girl=getClosestGirl(x_enemy,y_enemy)
+        dx=x_girl-x_enemy
+        dy=y_girl-y_enemy
+        
+        if math.sqrt(dx * dx + dy * dy)<100 then
+            return
+        end
+
         table.insert(enemies, Enemy.new(x_girl,y_girl,x_enemy,y_enemy))
     end
     -- Move enemies towards the player
