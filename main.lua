@@ -16,6 +16,9 @@ local Girl = girlModule.Girl
 local playerModule = require("objects/player")  -- Adjust the path if necessary
 local Player = playerModule.Player
 
+local powerModule = require("objects/power_one")  -- Adjust the path if necessary
+local PowerOne = powerModule.PowerOne
+
 
 local FRAME_WIDTH = enemyModule.FRAME_WIDTH
 local FRAME_HEIGHT = enemyModule.FRAME_HEIGHT
@@ -25,28 +28,34 @@ local ENEMY_PROPORTIONS = enemyModule.ENEMY_PROPORTIONS
 -- Variables
 local enemies = {}
 local girls = {}
+local powers = {}
+
 
 local enemySpeed = 200
 local score = 0
 
 local gameStarted = false
 
-local game = {
+game = {
     state = {
         menu = true,
         paused = false,
         running = false,
         gameover = false,
-        hitting = false
+        hitting = false,
+        powerOneClicked=false,
+        powerOneClickedAnimation=false
     }
 }
 
-local function changeGameState(state)
+function changeGameState(state)
     game.state["menu"] = state == "menu"
     game.state["paused"] = state == "paused"
     game.state["running"] = state == "running"
     game.state['hitting'] = state =='hitting'
     game.state["gameover"] = state == "gameover"
+    game.state["powerOneClicked"] = state == "powerOneClicked"
+    game.state["powerOneClickedAnimation"] = state == "powerOneClickedAnimation"
 end
 
 local function startNewGame()
@@ -56,8 +65,18 @@ local function startNewGame()
 end
 function love.mousepressed(x, y, button, istouch, presses)
     if button == 1 then -- Left mouse button
-        player:setXY(x,y)
+        if not game.state["powerOneClicked"] then 
+            for i, power in ipairs(powers) do
+                if power:handleClick(x,y) then 
+                    changeGameState("powerOneClickedAnimation")
+                    return
+                end
+            end
+            player:setXY(x,y)
+        else 
+            player:hitPowerOne(x,y,enemies)
         
+        end
     end
 end
 
@@ -124,11 +143,15 @@ function love.update(dt)
     --print()
 
     --and player.body:isTouching( groundBody.body )
+    updatePowers(dt)
+    if game.state["powerOneClickedAnimation"] then   
+        return
+    end
     createGirls(dt)  
     createEnemies(dt)
     player:update()
+    createPowers(dt)
     
-
 
     if not game.state["gameover"] then
         game.points = game.points + dt
@@ -177,7 +200,7 @@ function createEnemies(dt)
     -- Move enemies towards the player
     for i = #enemies, 1, -1 do
         local enemy = enemies[i]
-        enemy:update(dt)
+        enemy:update(dt,enemies)
         
         
     end
@@ -194,13 +217,33 @@ function createGirls(dt)
   
 end
 
+function updatePowers(dt) 
+    for _, po in ipairs(powers) do
+        po:update(dt)
+    end
+end
+
+function createPowers(dt)
+    
+    if game.state["powerOneClicked"] then 
+        return
+    end
+    if math.random() < 0.1 then
+        if next(powers) == nil then
+            table.insert(powers, PowerOne.new())
+        end
+    end
+  
+end
+
+
 
 -------------------------------------------------------------GAME DRAW----------------------------------------------------------------
 
 function love.draw()
     if game.state["menu"] then
         gameStart()
-    elseif game.state['running'] or game.state['hitting'] then
+    elseif game.state['running'] or game.state['hitting'] or game.state["powerOneClickedAnimation"] or game.state["powerOneClicked"]  then
         love.graphics.setColor(255, 255, 255)
         love.graphics.draw(backgroundImage, 0, 0, 0, 1, 1)
      
@@ -209,6 +252,10 @@ function love.draw()
         end
         for _, gi in ipairs(girls) do
             gi:draw()
+        end
+    
+        for _, po in ipairs(powers) do
+            po:draw()
         end
         -- Display score
         love.graphics.setColor(255, 255, 255)
@@ -248,3 +295,5 @@ function saveScore()
     local ScoreData={bestscore, enemies_jumped}
     love.filesystem.write("datas.txt", table.concat(ScoreData,"\n"))
 end
+
+

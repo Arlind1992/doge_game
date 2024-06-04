@@ -14,6 +14,14 @@ function Player:setXY(x,y)
     self.y=y
     self.todraw=true
 end
+function Player:hitPowerOne(x,y,enemies)
+    print("handle hit")
+    for i, v in ipairs(enemies) do
+        if math.sqrt((x-v.x) * (x-v.x) + (y-v.y) * (y-v.y))<200 then
+            v.hit=true
+        end
+    end
+end
 
 
 function Player:update(dt)
