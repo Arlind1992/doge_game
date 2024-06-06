@@ -2,7 +2,12 @@ local Player = {}
 Player.__index = Player
 function Player:new()
     local self = setmetatable({}, Player)
-    self.image = love.graphics.newImage("/Assets/doge.png") -- Adjust the path as necessary
+    self.image = love.graphics.newImage("/Assets/bonk.png") -- Adjust the path as necessary
+
+    self.spriteSheetHitting = love.graphics.newImage("Assets/spritesheet_bonk.png")
+    self.gridHitting =anim8.newGrid(450,323, self.spriteSheetHitting:getWidth(), self.spriteSheetHitting:getHeight())
+
+
     self.todraw=false
     self.x=0
     self.y=0
@@ -35,5 +40,12 @@ function Player:draw()
 
 end
 
+function Player:drawHitting()
+    if self.todraw then
+        self.animations.hitting:draw(self.spriteSheetHitting,self.body:getX(), self.body:getY()-323*PLAYER_PROPORTIONS/2, 0, PLAYER_PROPORTIONS, PLAYER_PROPORTIONS)
+    end
+        
+
+end
 
 return {Player=Player}
